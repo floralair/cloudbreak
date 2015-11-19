@@ -43,7 +43,6 @@ public class EnvironmentVariableConfig {
     public static final String CB_DOCKER_AMBARI_IMAGE_NAME = "sequenceiq/ambari:2.1.2-v4";
     public static final String CB_DOCKER_CONTAINER_AMBARI_WARMUP = CB_DOCKER_AMBARI_IMAGE_NAME;
     public static final String CB_DOCKER_CONTAINER_AMBARI = CB_DOCKER_AMBARI_IMAGE_NAME;
-    public static final String CB_DOCKER_CONTAINER_REGISTRATOR = "sequenceiq/registrator:v5.2";
     public static final String CB_DOCKER_CONTAINER_DOCKER_CONSUL_WATCH_PLUGN = "sequenceiq/docker-consul-watch-plugn:1.0";
     public static final String CB_DOCKER_CONTAINER_AMBARI_DB = "postgres:9.4.1";
     public static final String CB_DOCKER_CONTAINER_KERBEROS = "sequenceiq/kerberos:2.1.0-consul";

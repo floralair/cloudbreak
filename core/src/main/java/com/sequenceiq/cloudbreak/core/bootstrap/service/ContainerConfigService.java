@@ -9,9 +9,9 @@ import static com.sequenceiq.cloudbreak.EnvironmentVariableConfig.CB_DOCKER_CONT
 import static com.sequenceiq.cloudbreak.EnvironmentVariableConfig.CB_DOCKER_CONTAINER_KERBEROS;
 import static com.sequenceiq.cloudbreak.EnvironmentVariableConfig.CB_DOCKER_CONTAINER_LOGROTATE;
 import static com.sequenceiq.cloudbreak.EnvironmentVariableConfig.CB_DOCKER_CONTAINER_MUNCHAUSEN;
-import static com.sequenceiq.cloudbreak.EnvironmentVariableConfig.CB_DOCKER_CONTAINER_REGISTRATOR;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -42,7 +42,7 @@ public class ContainerConfigService {
     @Value("${cb.docker.container.ambari:}")
     private String ambariDockerImageName;
 
-    @Value("${cb.docker.container.registrator:" + CB_DOCKER_CONTAINER_REGISTRATOR + "}")
+
     private String registratorDockerImageName;
 
     @Value("${cb.docker.container.docker.consul.watch.plugn:" + CB_DOCKER_CONTAINER_DOCKER_CONSUL_WATCH_PLUGN + "}")
@@ -65,6 +65,9 @@ public class ContainerConfigService {
 
     @Value("${cb.docker.container.munchausen:" + CB_DOCKER_CONTAINER_MUNCHAUSEN + "}")
     private String munchausenImageName;
+
+    @Inject
+    private ContainerConfiguration containerConfiguration;
 
     @Inject
     private ComponentRepository componentRepository;
@@ -102,6 +105,7 @@ public class ContainerConfigService {
                     config = new GenericConfig.Builder(kerberosDockerImageName).build();
                     break;
                 case REGISTRATOR:
+                    Map<String, Map<String, String>> x = containerConfiguration.getImages();
                     config = new GenericConfig.Builder(registratorDockerImageName).build();
                     break;
                 case MUNCHAUSEN:
