@@ -1,13 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-    }
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    }
-}
-
 jar {
     baseName = 'cloudbreak-integration-test'
 }
@@ -17,13 +7,9 @@ apply plugin: 'spring-boot'
 mainClassName = 'com.sequenceiq.it.IntegrationTestApp'
 
 dependencies {
-    compile project(':cloud-common')
-    compile("com.sequenceiq:${ambariClientName}:${ambariClientVersion}") {
-        exclude group: 'org.slf4j';
-    }
-    compile ("com.sequenceiq:cloudbreak-rest-client:${cloudbreakClientVersion}") {
-        exclude group: "org.slf4j";
-    }
+    compile project(':cloudbreak-core:cloud-common')
+    compile project(':ambari-rest-client')
+    compile project(':cloudbreak-rest-client')
     compile "org.springframework.boot:spring-boot-starter:${springBootVersion}"
     compile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     compile "org.springframework:spring-web:4.1.4.RELEASE"
