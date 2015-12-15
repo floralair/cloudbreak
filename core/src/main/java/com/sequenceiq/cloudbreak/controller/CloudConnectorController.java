@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,12 +23,12 @@ import com.sequenceiq.cloudbreak.cloud.model.PlatformDisks;
 import com.sequenceiq.cloudbreak.cloud.model.PlatformRegions;
 import com.sequenceiq.cloudbreak.cloud.model.PlatformVariants;
 import com.sequenceiq.cloudbreak.cloud.model.PlatformVirtualMachines;
-import com.sequenceiq.cloudbreak.controller.json.JsonEntity;
-import com.sequenceiq.cloudbreak.controller.json.PlatformDisksJson;
-import com.sequenceiq.cloudbreak.controller.json.PlatformRegionsJson;
-import com.sequenceiq.cloudbreak.controller.json.PlatformVariantsJson;
-import com.sequenceiq.cloudbreak.controller.json.PlatformVirtualMachinesJson;
-import com.sequenceiq.cloudbreak.controller.json.VmTypeJson;
+import com.sequenceiq.cloudbreak.model.JsonEntity;
+import com.sequenceiq.cloudbreak.model.PlatformDisksJson;
+import com.sequenceiq.cloudbreak.model.PlatformRegionsJson;
+import com.sequenceiq.cloudbreak.model.PlatformVariantsJson;
+import com.sequenceiq.cloudbreak.model.PlatformVirtualMachinesJson;
+import com.sequenceiq.cloudbreak.model.VmTypeJson;
 import com.sequenceiq.cloudbreak.service.stack.CloudParameterService;
 
 @Controller
@@ -41,7 +43,8 @@ public class CloudConnectorController {
 
     @RequestMapping(value = "/connectors", method = RequestMethod.GET)
     @ResponseBody
-    public ResponseEntity<Map<String, JsonEntity>> getPlatforms() {
+    public Map<String, JsonEntity> getPlatforms() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         PlatformVariants pv = cloudParameterService.getPlatformVariants();
         PlatformDisks diskTypes = cloudParameterService.getDiskTypes();
         PlatformVirtualMachines vmtypes = cloudParameterService.getVmtypes();
@@ -54,7 +57,7 @@ public class CloudConnectorController {
         map.put("virtualMachines", conversionService.convert(vmtypes, PlatformVirtualMachinesJson.class));
         map.put("regions", conversionService.convert(regions, PlatformRegionsJson.class));
 
-        return new ResponseEntity<>(map, HttpStatus.OK);
+        return map;
     }
 
     @RequestMapping(value = "/connectors/variants", method = RequestMethod.GET)

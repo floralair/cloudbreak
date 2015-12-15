@@ -3,7 +3,7 @@ package com.sequenceiq.cloudbreak.service.cluster.event;
 import java.util.List;
 import java.util.Set;
 
-import com.sequenceiq.cloudbreak.controller.json.HostGroupAdjustmentJson;
+import com.sequenceiq.cloudbreak.model.HostGroupAdjustmentJson;
 import com.sequenceiq.cloudbreak.common.type.CloudPlatform;
 import com.sequenceiq.cloudbreak.domain.HostMetadata;
 import com.sequenceiq.cloudbreak.common.type.ScalingType;

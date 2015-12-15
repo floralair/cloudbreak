@@ -2,9 +2,10 @@ package com.sequenceiq.cloudbreak.converter;
 
 import java.util.List;
 
-import com.sequenceiq.cloudbreak.controller.json.AccountPreferencesJson;
-import com.sequenceiq.cloudbreak.domain.AccountPreferences;
 import org.springframework.stereotype.Component;
+
+import com.sequenceiq.cloudbreak.domain.AccountPreferences;
+import com.sequenceiq.cloudbreak.model.AccountPreferencesJson;
 
 @Component
 public class JsonToAccountPreferencesConverter extends AbstractConversionServiceAwareConverter<AccountPreferencesJson, AccountPreferences> {

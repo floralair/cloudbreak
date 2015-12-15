@@ -1,0 +1,51 @@
+buildscript {
+  repositories {
+    maven { url 'http://repo.spring.io/libs-release' }
+    mavenCentral()
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    classpath "com.smokejumperit.gradle.license:Gradle-License-Report:0.0.2"
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'license-report'
+apply plugin: 'spring-boot'
+
+sourceCompatibility = 1.7
+
+repositories {
+  mavenCentral()
+}
+
+jar {
+  baseName = 'core-api'
+}
+
+dependencies {
+  compile group: 'org.springframework.boot',      name: 'spring-boot-starter-jersey',     version: springBootVersion
+  compile group: 'javax.ws.rs',                   name: 'javax.ws.rs-api',                version: '2.0.1'
+  compile group: 'com.wordnik',                   name: 'swagger-core',                   version: '1.5.2-M1'
+  compile group: 'com.mangofactory',              name: 'swagger-springmvc',              version: '1.0.2'
+  compile group: 'javax',                         name: 'javaee-api',                     version: '7.0'
+  compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.4'
+
+  compile project(':core-model')
+
+}
+
+task testJar(type: Jar, dependsOn: testClasses) {
+  baseName = "test-${project.archivesBaseName}"
+  from sourceSets.test.output
+  from sourceSets.main.output
+}
+
+configurations {
+  tests
+}
+
+artifacts {
+  tests testJar
+}

@@ -3,8 +3,8 @@ package com.sequenceiq.cloudbreak.controller.validation;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import com.sequenceiq.cloudbreak.controller.json.InstanceGroupAdjustmentJson;
-import com.sequenceiq.cloudbreak.controller.json.UpdateStackJson;
+import com.sequenceiq.cloudbreak.model.InstanceGroupAdjustmentJson;
+import com.sequenceiq.cloudbreak.model.UpdateStackJson;
 
 public class UpdateStackRequestValidator implements ConstraintValidator<ValidUpdateStackRequest, UpdateStackJson> {
 

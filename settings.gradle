@@ -14,3 +14,5 @@ include 'cloud-aws'
 include 'cloud-template'
 
 rootProject.name = 'cloudbreak'
+include 'core-api'
+

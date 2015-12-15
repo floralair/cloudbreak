@@ -38,7 +38,7 @@ dependencies {
     compile group: 'org.springframework.boot',      name: 'spring-boot-starter-data-jpa',   version: springBootVersion
     compile group: 'org.springframework.boot',      name: 'spring-boot-starter-websocket',  version: springBootVersion
     compile group: 'org.springframework.boot',      name: 'spring-boot-starter-aop',        version: springBootVersion
-    compile group: 'javax',                         name: 'javaee-api',                     version: '7.0'
+    compile group: 'org.springframework.boot',      name: 'spring-boot-starter-jersey',     version: springBootVersion
     compile group: 'org.springframework.security.oauth', name: 'spring-security-oauth2',    version: '2.0.3.RELEASE'
     compile group: 'org.springframework.security',  name: 'spring-security-config',         version: '3.2.3.RELEASE'
     compile group: 'org.springframework.security',  name: 'spring-security-web',            version: '3.2.3.RELEASE'
@@ -59,18 +59,15 @@ dependencies {
     compile group: 'org.bouncycastle',              name: 'bcprov-jdk15on',                 version: '1.47'
     compile group: 'org.bouncycastle',              name: 'bcpkix-jdk15on',                 version: '1.47'
     compile group: 'org.jasypt',                    name: 'jasypt',                         version: '1.9.2'
-    compile group: 'com.wordnik',                   name: 'swagger-core',                   version: '1.5.2-M1'
-    compile group: 'com.mangofactory',              name: 'swagger-springmvc',              version: '1.0.2'
-    compile group: 'com.google.http-client',        name: 'google-http-client-jackson2',    version: '1.17.0-rc'
     compile (group: 'com.google.oauth-client',      name: 'google-oauth-client-jetty',      version: '1.17.0-rc')   { exclude module: 'servlet-api' }
     compile group: 'com.jcraft',                    name: 'jsch',                           version: '0.1.52'
     compile group: 'com.hierynomus',                name: 'sshj',                           version: '0.15.0'
     compile group: 'dnsjava',                       name: 'dnsjava',                        version: '2.1.7'
     compile group: 'com.icegreen',                  name: 'greenmail',                      version: '1.4.1'
     compile group: 'org.mybatis',                   name: 'mybatis-migrations',             version: '3.2.0'
+    compile group: 'com.google.http-client',        name: 'google-http-client-jackson2',    version: '1.17.0-rc'
 
-    compile project(':core-model')
-    compile project(':orchestrator-api')
+  compile project(':orchestrator-api')
     compile project(':cloud-reactor-api')
 
     runtime project(':orchestrator-swarm')
@@ -79,6 +76,7 @@ dependencies {
     compile project(':cloud-arm')
     runtime project(':cloud-gcp')
     compile project(':cloud-aws')
+    compile project(':core-api')
 
     runtime     group: 'activation',                name: 'activation',                     version: '1.0.2'
 
