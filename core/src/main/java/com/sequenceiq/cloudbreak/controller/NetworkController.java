@@ -4,36 +4,29 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.sequenceiq.cloudbreak.controller.doc.ContentType;
-import com.sequenceiq.cloudbreak.controller.doc.ControllerDescription;
-import com.sequenceiq.cloudbreak.controller.doc.Notes;
-import com.sequenceiq.cloudbreak.controller.doc.OperationDescriptions;
-import com.sequenceiq.cloudbreak.controller.json.IdJson;
-import com.sequenceiq.cloudbreak.controller.json.NetworkJson;
+import com.sequenceiq.cloudbreak.api.NetworkEndpoint;
+import com.sequenceiq.cloudbreak.doc.ContentType;
+import com.sequenceiq.cloudbreak.doc.ControllerDescription;
+import com.sequenceiq.cloudbreak.doc.Notes;
+import com.sequenceiq.cloudbreak.doc.OperationDescriptions;
 import com.sequenceiq.cloudbreak.domain.CbUser;
 import com.sequenceiq.cloudbreak.domain.Network;
+import com.sequenceiq.cloudbreak.model.IdJson;
+import com.sequenceiq.cloudbreak.model.NetworkJson;
 import com.sequenceiq.cloudbreak.service.network.DefaultNetworkCreator;
 import com.sequenceiq.cloudbreak.service.network.NetworkService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/networks", description = ControllerDescription.NETWORK_DESCRIPTION, position = 8)
-public class NetworkController {
+public class NetworkController implements NetworkEndpoint {
 
     @Inject
     @Qualifier("conversionService")
@@ -45,90 +38,92 @@ public class NetworkController {
     @Inject
     private DefaultNetworkCreator networkCreator;
 
+    @Inject
+    private AuthenticatedUserService authenticatedUserService;
+
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.POST_PRIVATE, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "user/networks", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<IdJson> createPrivateNetwork(@ModelAttribute("user") CbUser user, @RequestBody @Valid NetworkJson networkJson) {
+    public IdJson postPrivate(NetworkJson networkJson) {
+        CbUser user = authenticatedUserService.getCbUser();
         return createNetwork(user, networkJson, false);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.POST_PUBLIC, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "account/networks", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<IdJson> createAccountNetwork(@ModelAttribute("user") CbUser user, @RequestBody @Valid NetworkJson networkJson) {
+    public IdJson postPublic(NetworkJson networkJson) {
+        CbUser user = authenticatedUserService.getCbUser();
         return createNetwork(user, networkJson, true);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.GET_PRIVATE, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "user/networks", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Set<NetworkJson>> getPrivateNetworks(@ModelAttribute("user") CbUser user) {
+    public Set<NetworkJson> getPrivates() {
+        CbUser user = authenticatedUserService.getCbUser();
         Set<Network> networks = networkCreator.createDefaultNetworks(user);
         networks.addAll(networkService.retrievePrivateNetworks(user));
-        return new ResponseEntity<>(convert(networks), HttpStatus.OK);
+        return convert(networks);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.GET_PUBLIC, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "account/networks", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Set<NetworkJson>> getAccountNetworks(@ModelAttribute("user") CbUser user) {
+    public Set<NetworkJson> getPublics() {
+        CbUser user = authenticatedUserService.getCbUser();
         Set<Network> networks = networkCreator.createDefaultNetworks(user);
         networks.addAll(networkService.retrieveAccountNetworks(user));
-        return new ResponseEntity<>(convert(networks), HttpStatus.OK);
+        return convert(networks);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.GET_BY_ID, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "networks/{id}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<NetworkJson> getNetwork(@ModelAttribute("user") CbUser user, @PathVariable Long id) {
+    public NetworkJson get(Long id) {
         Network network = networkService.getById(id);
-        return new ResponseEntity<>(convert(network), HttpStatus.OK);
+        return convert(network);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.GET_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "user/networks/{name}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<NetworkJson> getNetworkInPrivate(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public NetworkJson getPrivate(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         Network network = networkService.getPrivateNetwork(name, user);
-        return new ResponseEntity<>(convert(network), HttpStatus.OK);
+        return convert(network);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.GET_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "account/networks/{name}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<NetworkJson> getNetworkInAccount(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public NetworkJson getPublic(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         Network network = networkService.getPublicNetwork(name, user);
-        return new ResponseEntity<>(convert(network), HttpStatus.OK);
+        return convert(network);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.DELETE_BY_ID, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "networks/{id}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<NetworkJson> deleteNetworkById(@ModelAttribute("user") CbUser user, @PathVariable Long id) {
+    public NetworkJson delete(Long id) {
+        CbUser user = authenticatedUserService.getCbUser();
         networkService.delete(id, user);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new NetworkJson();
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.DELETE_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "account/networks/{name}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<NetworkJson> deletePublicNetwork(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public NetworkJson deletePublic(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         networkService.delete(name, user);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new NetworkJson();
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.NetworkOpDescription.DELETE_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.NETWORK_NOTES)
-    @RequestMapping(value = "user/networks/{name}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<NetworkJson> deletePrivateNetwork(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public NetworkJson deletePrivate(@PathVariable String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         networkService.delete(name, user);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new NetworkJson();
     }
 
-    private ResponseEntity<IdJson> createNetwork(CbUser user, NetworkJson networkRequest, boolean publicInAccount) {
+    private IdJson createNetwork(CbUser user, NetworkJson networkRequest, boolean publicInAccount) {
         Network network = convert(networkRequest, publicInAccount);
         network = networkService.create(user, network);
-        return new ResponseEntity<>(new IdJson(network.getId()), HttpStatus.CREATED);
+        return new IdJson(network.getId());
     }
 
     private Network convert(NetworkJson networkRequest, boolean publicInAccount) {

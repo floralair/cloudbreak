@@ -7,7 +7,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import javax.validation.Valid;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
@@ -16,30 +15,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.stereotype.Component;
 
-import com.sequenceiq.cloudbreak.controller.doc.ContentType;
-import com.sequenceiq.cloudbreak.controller.doc.ControllerDescription;
-import com.sequenceiq.cloudbreak.controller.doc.Notes;
-import com.sequenceiq.cloudbreak.controller.doc.OperationDescriptions.ClusterOpDescription;
-import com.sequenceiq.cloudbreak.controller.json.AmbariStackDetailsJson;
-import com.sequenceiq.cloudbreak.controller.json.ClusterRequest;
-import com.sequenceiq.cloudbreak.controller.json.ClusterResponse;
-import com.sequenceiq.cloudbreak.controller.json.FileSystemRequest;
-import com.sequenceiq.cloudbreak.controller.json.HostGroupJson;
+import com.sequenceiq.cloudbreak.api.ClusterEndpoint;
 import com.sequenceiq.cloudbreak.controller.json.JsonHelper;
-import com.sequenceiq.cloudbreak.controller.json.UpdateClusterJson;
-import com.sequenceiq.cloudbreak.controller.json.UserNamePasswordJson;
 import com.sequenceiq.cloudbreak.controller.validation.blueprint.BlueprintValidator;
 import com.sequenceiq.cloudbreak.core.CloudbreakSecuritySetupException;
+import com.sequenceiq.cloudbreak.doc.ContentType;
+import com.sequenceiq.cloudbreak.doc.ControllerDescription;
+import com.sequenceiq.cloudbreak.doc.Notes;
+import com.sequenceiq.cloudbreak.doc.OperationDescriptions.ClusterOpDescription;
 import com.sequenceiq.cloudbreak.domain.AmbariStackDetails;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.CbUser;
@@ -47,6 +32,13 @@ import com.sequenceiq.cloudbreak.domain.Cluster;
 import com.sequenceiq.cloudbreak.domain.HostGroup;
 import com.sequenceiq.cloudbreak.domain.Stack;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
+import com.sequenceiq.cloudbreak.model.AmbariStackDetailsJson;
+import com.sequenceiq.cloudbreak.model.ClusterRequest;
+import com.sequenceiq.cloudbreak.model.ClusterResponse;
+import com.sequenceiq.cloudbreak.model.FileSystemRequest;
+import com.sequenceiq.cloudbreak.model.HostGroupJson;
+import com.sequenceiq.cloudbreak.model.UpdateClusterJson;
+import com.sequenceiq.cloudbreak.model.UserNamePasswordJson;
 import com.sequenceiq.cloudbreak.service.cluster.ClusterService;
 import com.sequenceiq.cloudbreak.service.decorator.Decorator;
 import com.sequenceiq.cloudbreak.service.hostgroup.HostGroupService;
@@ -55,9 +47,9 @@ import com.sequenceiq.cloudbreak.util.JsonUtil;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/cluster", description = ControllerDescription.CLUSTER_DESCRIPTION, position = 4)
-public class ClusterController {
+public class ClusterController implements ClusterEndpoint {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterController.class);
 
     @Inject
@@ -85,13 +77,16 @@ public class ClusterController {
     @Inject
     private JsonHelper jsonHelper;
 
+    @Inject
+    private AuthenticatedUserService authenticatedUserService;
+
+    @Override
     @ApiOperation(value = ClusterOpDescription.POST_FOR_STACK, produces = ContentType.JSON, notes = Notes.CLUSTER_NOTES)
-    @RequestMapping(value = "/stacks/{stackId}/cluster", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<String> create(@ModelAttribute("user") CbUser user, @PathVariable Long stackId, @RequestBody @Valid ClusterRequest request) {
+    public String post(Long stackId, ClusterRequest request) {
+        CbUser user = authenticatedUserService.getCbUser();
         if (request.getEnableSecurity()
                 && (request.getKerberosMasterKey() == null || request.getKerberosAdmin() == null || request.getKerberosPassword() == null)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return "";
         }
 
         MDCBuilder.buildUserMdcContext(user);
@@ -101,7 +96,7 @@ public class ClusterController {
         Cluster cluster = conversionService.convert(request, Cluster.class);
         cluster = clusterDecorator.decorate(cluster, stackId, request.getBlueprintId(), request.getHostGroups(), request.getValidateBlueprint());
         clusterService.create(user, stackId, cluster);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return "";
     }
 
     private void validateFilesystemRequest(FileSystemRequest fileSystemRequest) {
@@ -121,69 +116,68 @@ public class ClusterController {
         }
     }
 
+    @Override
     @ApiOperation(value = ClusterOpDescription.GET_BY_STACK_ID, produces = ContentType.JSON, notes = Notes.CLUSTER_NOTES)
-    @RequestMapping(value = "/stacks/{stackId}/cluster", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<ClusterResponse> retrieveCluster(@ModelAttribute("user") CbUser user, @PathVariable Long stackId) {
+    public ClusterResponse get(Long stackId) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Stack stack = stackService.get(stackId);
         Cluster cluster = clusterService.retrieveClusterForCurrentUser(stackId);
         String clusterJson = clusterService.getClusterJson(stack.getAmbariIp(), stackId);
         ClusterResponse response = getClusterResponse(cluster, clusterJson);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return response;
     }
 
+    @Override
     @ApiOperation(value = ClusterOpDescription.GET_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.CLUSTER_NOTES)
-    @RequestMapping(value = "user/stacks/{name}/cluster", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<ClusterResponse> retrievePrivateCluster(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public ClusterResponse getPrivate(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Stack stack = stackService.getPrivateStack(name, user);
         Cluster cluster = clusterService.retrieveClusterForCurrentUser(stack.getId());
         String clusterJson = clusterService.getClusterJson(stack.getAmbariIp(), stack.getId());
         ClusterResponse response = getClusterResponse(cluster, clusterJson);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return response;
     }
 
+    @Override
     @ApiOperation(value = ClusterOpDescription.GET_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.CLUSTER_NOTES)
-    @RequestMapping(value = "account/stacks/{name}/cluster", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<ClusterResponse> retrievePublicCluster(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public ClusterResponse getPublic(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Stack stack = stackService.getPublicStack(name, user);
         Cluster cluster = clusterService.retrieveClusterForCurrentUser(stack.getId());
         String clusterJson = clusterService.getClusterJson(stack.getAmbariIp(), stack.getId());
         ClusterResponse response = getClusterResponse(cluster, clusterJson);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return response;
     }
 
+    @Override
     @ApiOperation(value = ClusterOpDescription.PUT_BY_STACK_ID, produces = ContentType.JSON, notes = Notes.CLUSTER_NOTES)
-    @RequestMapping(value = "/stacks/{stackId}/cluster", method = RequestMethod.PUT)
-    @ResponseBody
-    public ResponseEntity<String> updateCluster(@PathVariable Long stackId, @RequestBody UpdateClusterJson updateJson) throws CloudbreakSecuritySetupException {
+    public String put(Long stackId, UpdateClusterJson updateJson) throws CloudbreakSecuritySetupException {
         Stack stack = stackService.get(stackId);
         MDCBuilder.buildMdcContext(stack);
         UserNamePasswordJson userNamePasswordJson = updateJson.getUserNamePasswordJson();
         if (userNamePasswordJson != null) {
             ambariUserNamePasswordChange(stackId, stack, userNamePasswordJson);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return "";
         }
 
         if (updateJson.getStatus() != null) {
             LOGGER.info("Cluster status update request received. Stack id:  {}, status: {} ", stackId, updateJson.getStatus());
             clusterService.updateStatus(stackId, updateJson.getStatus());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return "";
         }
 
         if (updateJson.getBlueprintId() != null && updateJson.getHostgroups() != null && stack.getCluster().isCreateFailed()) {
             LOGGER.info("Cluster rebuild request received. Stack id:  {}", stackId);
             recreateCluster(stackId, updateJson);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return "";
         }
 
         if (updateJson.getHostGroupAdjustment() != null) {
             clusterHostgroupAdjusmentChange(stackId, updateJson, stack);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return "";
         }
         LOGGER.error("Invalid cluster update request received. Stack id: {}", stackId);
         throw new BadRequestException("Invalid update cluster request!");

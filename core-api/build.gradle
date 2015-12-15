@@ -1,0 +1,36 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+
+repositories {
+  mavenCentral()
+}
+
+jar {
+  baseName = 'core-api'
+}
+
+dependencies {
+  compile group: 'javax.ws.rs',                   name: 'javax.ws.rs-api',                version: '2.0.1'
+  compile group: 'com.wordnik',                   name: 'swagger-core',                   version: '1.5.2-M1'
+  compile group: 'com.mangofactory',              name: 'swagger-springmvc',              version: '1.0.2'
+  compile group: 'javax',                         name: 'javaee-api',                     version: '7.0'
+  //compile group: 'com.fasterxml.jackson.core',    name: 'jackson-annotations',            version: '2.6.4'
+
+  compile project(':core-model')
+
+}
+
+task testJar(type: Jar, dependsOn: testClasses) {
+  baseName = "test-${project.archivesBaseName}"
+  from sourceSets.test.output
+  from sourceSets.main.output
+}
+
+configurations {
+  tests
+}
+
+artifacts {
+  tests testJar
+}

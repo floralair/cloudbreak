@@ -5,43 +5,37 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.stereotype.Component;
 
-import com.mangofactory.swagger.annotations.ApiIgnore;
-import com.sequenceiq.cloudbreak.controller.doc.ContentType;
-import com.sequenceiq.cloudbreak.controller.doc.ControllerDescription;
-import com.sequenceiq.cloudbreak.controller.doc.Notes;
-import com.sequenceiq.cloudbreak.controller.doc.OperationDescriptions.BlueprintOpDescription;
-import com.sequenceiq.cloudbreak.controller.json.BlueprintRequest;
-import com.sequenceiq.cloudbreak.controller.json.BlueprintResponse;
-import com.sequenceiq.cloudbreak.controller.json.IdJson;
+import com.sequenceiq.cloudbreak.api.BlueprintEndpoint;
+import com.sequenceiq.cloudbreak.doc.ContentType;
+import com.sequenceiq.cloudbreak.doc.ControllerDescription;
+import com.sequenceiq.cloudbreak.doc.Notes;
+import com.sequenceiq.cloudbreak.doc.OperationDescriptions.BlueprintOpDescription;
 import com.sequenceiq.cloudbreak.domain.Blueprint;
 import com.sequenceiq.cloudbreak.domain.CbUser;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
-import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
+import com.sequenceiq.cloudbreak.model.BlueprintRequest;
+import com.sequenceiq.cloudbreak.model.BlueprintResponse;
+import com.sequenceiq.cloudbreak.model.IdJson;
 import com.sequenceiq.cloudbreak.service.blueprint.BlueprintLoaderService;
+import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/blueprints", description = ControllerDescription.BLUEPRINT_DESCRIPTION, position = 0)
-public class BlueprintController {
+public class BlueprintController implements BlueprintEndpoint {
 
     @Inject
     private BlueprintService blueprintService;
+
+    @Inject
+    private AuthenticatedUserService authenticatedUserService;
 
     @Inject
     @Qualifier("conversionService")
@@ -50,109 +44,103 @@ public class BlueprintController {
     @Inject
     private BlueprintLoaderService blueprintLoaderService;
 
-    @RequestMapping(value = "user/blueprints", method = RequestMethod.POST)
-    @ResponseBody
+    @Override
     @ApiOperation(value = BlueprintOpDescription.POST_PRIVATE, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    public ResponseEntity<IdJson> createPrivateBlueprint(
-            @ModelAttribute("user") CbUser user,
-            @RequestBody @Valid BlueprintRequest blueprintRequest) {
+    public IdJson postPrivate(BlueprintRequest blueprintRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         return createBlueprint(user, blueprintRequest, false);
     }
 
-    @RequestMapping(value = "account/blueprints", method = RequestMethod.POST)
-    @ResponseBody
+    @Override
     @ApiOperation(value = BlueprintOpDescription.POST_PUBLIC, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    public ResponseEntity<IdJson> createAccountBlueprint(
-            @ModelAttribute("user") CbUser user,
-            @RequestBody @Valid BlueprintRequest blueprintRequest) {
+    public IdJson postPublic(BlueprintRequest blueprintRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         return createBlueprint(user, blueprintRequest, true);
     }
 
-
+    @Override
     @ApiOperation(value = BlueprintOpDescription.GET_PRIVATE, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "user/blueprints", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Set<BlueprintResponse>> getPrivateBlueprints(@ModelAttribute("user") CbUser user) {
+    public Set<BlueprintResponse> getPrivates() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Set<Blueprint> blueprints = blueprintService.retrievePrivateBlueprints(user);
         if (blueprints.isEmpty()) {
             Set<Blueprint> blueprintsList = blueprintLoaderService.loadBlueprints(user);
             blueprints = new HashSet<>((ArrayList<Blueprint>) blueprintService.save(blueprintsList));
         }
-        Set<BlueprintResponse> jsons = toJsonList(blueprints);
-        return new ResponseEntity<>(jsons, HttpStatus.OK);
+        return toJsonList(blueprints);
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.GET_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "user/blueprints/{name}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<BlueprintResponse> getPrivateBlueprint(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public BlueprintResponse getPrivate(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Blueprint blueprint = blueprintService.getPrivateBlueprint(name, user);
-        return new ResponseEntity<>(conversionService.convert(blueprint, BlueprintResponse.class), HttpStatus.OK);
+        return conversionService.convert(blueprint, BlueprintResponse.class);
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.GET_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "account/blueprints/{name}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<BlueprintResponse> createAccountBlueprint(@ApiIgnore @ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public BlueprintResponse getPublic(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         Blueprint blueprint = blueprintService.getPublicBlueprint(name, user);
-        return new ResponseEntity<>(conversionService.convert(blueprint, BlueprintResponse.class), HttpStatus.OK);
+        return conversionService.convert(blueprint, BlueprintResponse.class);
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.GET_PUBLIC, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "account/blueprints", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Set<BlueprintResponse>> getAccountBlueprints(@ApiIgnore @ModelAttribute("user") CbUser user) {
+    public Set<BlueprintResponse> getPublics() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Set<Blueprint> blueprints = blueprintLoaderService.loadBlueprints(user);
         blueprints.addAll(blueprintService.retrieveAccountBlueprints(user));
-        return new ResponseEntity<>(toJsonList(blueprints), HttpStatus.OK);
+        return toJsonList(blueprints);
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.GET_BY_ID, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "blueprints/{id}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<BlueprintResponse> getBlueprint(@ApiIgnore @ModelAttribute("user") CbUser user, @PathVariable Long id) {
+    public BlueprintResponse get(Long id) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Blueprint blueprint = blueprintService.get(id);
-        return new ResponseEntity<>(conversionService.convert(blueprint, BlueprintResponse.class), HttpStatus.OK);
+        return conversionService.convert(blueprint, BlueprintResponse.class);
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.DELETE_BY_ID, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "blueprints/{id}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<BlueprintResponse> deleteBlueprint(@ModelAttribute("user") CbUser user, @PathVariable Long id) {
+    public BlueprintResponse delete(Long id) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         blueprintService.delete(id, user);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new BlueprintResponse();
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.DELETE_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "account/blueprints/{name}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<BlueprintResponse> deleteBlueprintInAccount(@ApiIgnore @ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public BlueprintResponse deletePublic(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         blueprintService.delete(name, user);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new BlueprintResponse();
     }
 
+    @Override
     @ApiOperation(value = BlueprintOpDescription.DELETE_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)
-    @RequestMapping(value = "user/blueprints/{name}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<BlueprintResponse> deleteBlueprintInPrivate(@ApiIgnore @ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public BlueprintResponse deletePrivate(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         blueprintService.delete(name, user);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new BlueprintResponse();
     }
 
-    private ResponseEntity<IdJson> createBlueprint(CbUser user, BlueprintRequest blueprintRequest, boolean publicInAccount) {
+    private IdJson createBlueprint(CbUser user, BlueprintRequest blueprintRequest, boolean publicInAccount) {
         Blueprint blueprint = conversionService.convert(blueprintRequest, Blueprint.class);
         blueprint.setPublicInAccount(publicInAccount);
         blueprint = blueprintService.create(user, blueprint);
-        return new ResponseEntity<>(new IdJson(blueprint.getId()), HttpStatus.CREATED);
+        return new IdJson(blueprint.getId());
     }
 
     private Set<BlueprintResponse> toJsonList(Set<Blueprint> blueprints) {

@@ -23,9 +23,9 @@ import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.sequenceiq.cloudbreak.controller.json.InstanceGroupAdjustmentJson;
-import com.sequenceiq.cloudbreak.controller.json.UpdateStackJson;
 import com.sequenceiq.cloudbreak.common.type.StatusRequest;
+import com.sequenceiq.cloudbreak.model.InstanceGroupAdjustmentJson;
+import com.sequenceiq.cloudbreak.model.UpdateStackJson;
 
 public class UpdateStackRequestValidatorTest {
 

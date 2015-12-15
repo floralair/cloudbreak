@@ -4,40 +4,29 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Inject;
-import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.api.StackEndpoint;
 import com.sequenceiq.cloudbreak.cloud.model.PlatformVariants;
-import com.sequenceiq.cloudbreak.controller.doc.ContentType;
-import com.sequenceiq.cloudbreak.controller.doc.ControllerDescription;
-import com.sequenceiq.cloudbreak.controller.doc.Notes;
-import com.sequenceiq.cloudbreak.controller.doc.OperationDescriptions.StackOpDescription;
-import com.sequenceiq.cloudbreak.controller.json.AmbariAddressJson;
-import com.sequenceiq.cloudbreak.controller.json.CertificateResponse;
-import com.sequenceiq.cloudbreak.controller.json.IdJson;
-import com.sequenceiq.cloudbreak.controller.json.PlatformVariantsJson;
-import com.sequenceiq.cloudbreak.controller.json.StackRequest;
-import com.sequenceiq.cloudbreak.controller.json.StackResponse;
-import com.sequenceiq.cloudbreak.controller.json.StackValidationRequest;
-import com.sequenceiq.cloudbreak.controller.json.TemplateResponse;
-import com.sequenceiq.cloudbreak.controller.json.UpdateStackJson;
+import com.sequenceiq.cloudbreak.doc.ContentType;
+import com.sequenceiq.cloudbreak.doc.ControllerDescription;
+import com.sequenceiq.cloudbreak.doc.Notes;
+import com.sequenceiq.cloudbreak.doc.OperationDescriptions.StackOpDescription;
 import com.sequenceiq.cloudbreak.domain.CbUser;
 import com.sequenceiq.cloudbreak.domain.Stack;
 import com.sequenceiq.cloudbreak.domain.StackValidation;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
+import com.sequenceiq.cloudbreak.model.AmbariAddressJson;
+import com.sequenceiq.cloudbreak.model.IdJson;
+import com.sequenceiq.cloudbreak.model.PlatformVariantsJson;
+import com.sequenceiq.cloudbreak.model.StackRequest;
+import com.sequenceiq.cloudbreak.model.StackResponse;
+import com.sequenceiq.cloudbreak.model.StackValidationRequest;
+import com.sequenceiq.cloudbreak.model.UpdateStackJson;
 import com.sequenceiq.cloudbreak.service.TlsSecurityService;
 import com.sequenceiq.cloudbreak.service.account.AccountPreferencesValidationFailed;
 import com.sequenceiq.cloudbreak.service.account.AccountPreferencesValidator;
@@ -47,9 +36,9 @@ import com.sequenceiq.cloudbreak.service.stack.StackService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/stack", description = ControllerDescription.STACK_DESCRIPTION, position = 3)
-public class StackController {
+public class StackController implements StackEndpoint {
 
     @Inject
     private StackService stackService;
@@ -70,29 +59,32 @@ public class StackController {
     @Inject
     private CloudParameterService parameterService;
 
+    @Inject
+    private AuthenticatedUserService authenticatedUserService;
+
+    @Override
     @ApiOperation(value = StackOpDescription.POST_PRIVATE, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "user/stacks", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<IdJson> createPrivateStack(@ModelAttribute("user") CbUser user, @RequestBody @Valid StackRequest stackRequest) {
+    public IdJson postPrivate(StackRequest stackRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         return createStack(user, stackRequest, false);
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.POST_PUBLIC, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "account/stacks", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<IdJson> createAccountStack(@ModelAttribute("user") CbUser user, @RequestBody @Valid StackRequest stackRequest) {
+    public IdJson postPublic(StackRequest stackRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         return createStack(user, stackRequest, true);
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_PRIVATE, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "user/stacks", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Set<StackResponse>> getPrivateStacks(@ModelAttribute("user") CbUser user) {
+    public Set<StackResponse> getPrivates() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Set<Stack> stacks = stackService.retrievePrivateStacks(user);
-        return new ResponseEntity<>(convertStacks(stacks), HttpStatus.OK);
+        return convertStacks(stacks);
     }
 
     @ApiOperation(value = StackOpDescription.GET_PUBLIC, produces = ContentType.JSON, notes = "")
@@ -101,158 +93,143 @@ public class StackController {
                 TypeDescriptor.collection(Set.class, TypeDescriptor.valueOf(StackResponse.class)));
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_PUBLIC, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "account/stacks", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Set<StackResponse>> getAccountStacks(@ModelAttribute("user") CbUser user) {
+    public Set<StackResponse> getPublics() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Set<Stack> stacks = stackService.retrieveAccountStacks(user);
-
-        return new ResponseEntity<>(convertStacks(stacks), HttpStatus.OK);
+        return convertStacks(stacks);
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_BY_ID, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/{id}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<StackResponse> getStack(@ModelAttribute("user") CbUser user, @PathVariable Long id) {
+    public StackResponse get(Long id) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Stack stack = stackService.get(id);
         StackResponse stackJson = conversionService.convert(stack, StackResponse.class);
-        return new ResponseEntity<>(stackJson, HttpStatus.OK);
+        return stackJson;
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "user/stacks/{name}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<StackResponse> getStackInPrivate(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public StackResponse getPrivate(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Stack stack = stackService.getPrivateStack(name, user);
         StackResponse stackJson = conversionService.convert(stack, StackResponse.class);
-        return new ResponseEntity<>(stackJson, HttpStatus.OK);
+        return stackJson;
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "account/stacks/{name}", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<StackResponse> getStackInPublic(@ModelAttribute("user") CbUser user, @PathVariable String name) {
+    public StackResponse getPublic(String name) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Stack stack = stackService.getPublicStack(name, user);
         StackResponse stackJson = conversionService.convert(stack, StackResponse.class);
-        return new ResponseEntity<>(stackJson, HttpStatus.OK);
+        return stackJson;
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_STATUS_BY_ID, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/{id}/status", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getStackStatus(@ModelAttribute("user") CbUser user, @PathVariable Long id) {
+    public Map<String, Object> status(Long id) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Map<String, Object> statusMap = conversionService.convert(stackService.get(id), Map.class);
-        return new ResponseEntity<>(statusMap, HttpStatus.OK);
+        return statusMap;
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.DELETE_BY_ID, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/{id}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<TemplateResponse> deleteStack(@ModelAttribute("user") CbUser user, @PathVariable Long id,
-            @RequestParam(value = "forced", required = false, defaultValue = "false") Boolean forced) {
+    public StackResponse delete(Long id, Boolean forced) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         if (forced) {
             stackService.forceDelete(id, user);
         } else {
             stackService.delete(id, user);
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new StackResponse();
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.DELETE_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "user/stacks/{name}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<TemplateResponse> deletePrivateStack(@ModelAttribute("user") CbUser user, @PathVariable String name,
-            @RequestParam(value = "forced", required = false, defaultValue = "false") Boolean forced) {
+    public StackResponse deletePrivate(String name, Boolean forced) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         if (forced) {
             stackService.forceDelete(name, user);
         } else {
             stackService.delete(name, user);
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new StackResponse();
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.DELETE_PUBLIC_BY_NAME, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "account/stacks/{name}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<TemplateResponse> deletePublicStack(@ModelAttribute("user") CbUser user, @PathVariable String name,
-            @RequestParam(value = "forced", required = false, defaultValue = "false") Boolean forced) {
+    public StackResponse deletePublic(String name, Boolean forced) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         if (forced) {
             stackService.forceDelete(name, user);
         } else {
             stackService.delete(name, user);
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new StackResponse();
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.PUT_BY_ID, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/{id}", method = RequestMethod.PUT)
-    @ResponseBody
-    public ResponseEntity<String> updateStack(@ModelAttribute("user") CbUser user, @PathVariable Long id, @Valid @RequestBody UpdateStackJson updateRequest) {
+    public String put(Long id, UpdateStackJson updateRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         if (updateRequest.getStatus() != null) {
             stackService.updateStatus(id, updateRequest.getStatus());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return "";
         } else {
             Integer scalingAdjustment = updateRequest.getInstanceGroupAdjustment().getScalingAdjustment();
             validateAccountPreferences(id, scalingAdjustment);
             stackService.updateNodeCount(id, updateRequest.getInstanceGroupAdjustment());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return "";
         }
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_BY_AMBARI_ADDRESS, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/ambari", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<StackResponse> getStackForAmbari(@RequestBody AmbariAddressJson json) {
+    public StackResponse getStackForAmbari(AmbariAddressJson json) {
         Stack stack = stackService.get(json.getAmbariAddress());
-        return new ResponseEntity<>(conversionService.convert(stack, StackResponse.class), HttpStatus.OK);
+        return conversionService.convert(stack, StackResponse.class);
     }
 
-
-    @ApiOperation(value = StackOpDescription.GET_STACK_CERT, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/{id}/certificate", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<CertificateResponse> getCertificate(@PathVariable Long id) {
-        return new ResponseEntity<>(new CertificateResponse(tlsSecurityService.getCertificate(id)), HttpStatus.OK);
-    }
-
+    @Override
     @ApiOperation(value = StackOpDescription.VALIDATE, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/validate", method = RequestMethod.POST)
-    @ResponseBody
-    public ResponseEntity<IdJson> validateStack(@ModelAttribute("user") CbUser user, @RequestBody @Valid StackValidationRequest stackValidationRequest) {
+    public IdJson validate(StackValidationRequest stackValidationRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         StackValidation stackValidation = conversionService.convert(stackValidationRequest, StackValidation.class);
         stackService.validateStack(stackValidation);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new IdJson();
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.DELETE_INSTANCE_BY_ID, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/{stackId}/{instanceId}", method = RequestMethod.DELETE)
-    @ResponseBody
-    public ResponseEntity<String> deleteInstance(@ModelAttribute("user") CbUser user, @PathVariable("stackId") Long stackId,
-            @PathVariable("instanceId") String instanceId) {
+    public String deleteInstance(Long stackId, String instanceId) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildMdcContext(user);
         stackService.removeInstance(user, stackId, instanceId);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return "";
     }
 
+    @Override
     @ApiOperation(value = StackOpDescription.GET_PLATFORM_VARIANTS, produces = ContentType.JSON, notes = Notes.STACK_NOTES)
-    @RequestMapping(value = "stacks/platformVariants", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<PlatformVariantsJson> getPlatformVariants(@ModelAttribute("user") CbUser user) {
+    public PlatformVariantsJson variants() {
         PlatformVariants pv = parameterService.getPlatformVariants();
-        return new ResponseEntity<>(conversionService.convert(pv, PlatformVariantsJson.class), HttpStatus.OK);
+        return conversionService.convert(pv, PlatformVariantsJson.class);
     }
 
-    private ResponseEntity<IdJson> createStack(CbUser user, StackRequest stackRequest, boolean publicInAccount) {
+    private IdJson createStack(CbUser user, StackRequest stackRequest, boolean publicInAccount) {
         Stack stack = conversionService.convert(stackRequest, Stack.class);
         MDCBuilder.buildMdcContext(stack);
         stack = stackDecorator.decorate(stack, stackRequest.getCredentialId(), stackRequest.getConsulServerCount(), stackRequest.getNetworkId(),
@@ -260,7 +237,7 @@ public class StackController {
         stack.setPublicInAccount(publicInAccount);
         validateAccountPreferences(stack, user);
         stack = stackService.create(user, stack);
-        return new ResponseEntity<>(new IdJson(stack.getId()), HttpStatus.CREATED);
+        return new IdJson(stack.getId());
     }
 
     private void validateAccountPreferences(Stack stack, CbUser user) {
