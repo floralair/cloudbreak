@@ -1,21 +1,11 @@
 package com.sequenceiq.cloudbreak.controller;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.core.convert.TypeDescriptor;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.sequenceiq.cloudbreak.doc.ContentType;
 import com.sequenceiq.cloudbreak.doc.ControllerDescription;
@@ -32,6 +22,15 @@ import com.sequenceiq.cloudbreak.service.blueprint.BlueprintService;
 import com.sequenceiq.cloudbreak.service.blueprint.DefaultBlueprintLoaderService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.TypeDescriptor;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @Api(value = "/blueprints", description = ControllerDescription.BLUEPRINT_DESCRIPTION, position = 0)
@@ -83,8 +82,7 @@ public class BlueprintController {
             Set<Blueprint> blueprintsList = defaultBlueprintLoaderService.loadBlueprints(user);
             blueprints = new HashSet<>((ArrayList<Blueprint>) blueprintRepository.save(blueprintsList));
         }
-        Set<BlueprintResponse> jsons = toJsonList(blueprints);
-        return jsons;
+        return toJsonList(blueprints);
     }
 
     @ApiOperation(value = BlueprintOpDescription.GET_PRIVATE_BY_NAME, produces = ContentType.JSON, notes = Notes.BLUEPRINT_NOTES)

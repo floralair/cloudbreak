@@ -12,7 +12,7 @@ include 'cloud-common'
 include 'cloud-gcp'
 include 'cloud-aws'
 include 'cloud-template'
+include 'core-api'
 
 rootProject.name = 'cloudbreak'
-include 'core-api'
 

@@ -1,14 +1,9 @@
 package com.sequenceiq.cloudbreak.controller;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.inject.Inject;
 
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.sequenceiq.cloudbreak.api.TemplateEndpoint;
 import com.sequenceiq.cloudbreak.doc.ContentType;
@@ -26,10 +21,14 @@ import com.sequenceiq.cloudbreak.service.template.SimpleTemplateLoaderService;
 import com.sequenceiq.cloudbreak.service.template.TemplateService;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 
 @Controller
 @Api(value = "/templates", description = ControllerDescription.TEMPLATE_DESCRIPTION, position = 2)
-public class TemplateController implements TemplateEndpoint{
+public class TemplateController implements TemplateEndpoint {
     @Inject
     private TemplateService templateService;
 
@@ -87,8 +86,7 @@ public class TemplateController implements TemplateEndpoint{
         CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Template template = templateService.get(id);
-        TemplateResponse templateJson = convert(template);
-        return templateJson;
+        return convert(template);
     }
 
     @Override
@@ -97,8 +95,7 @@ public class TemplateController implements TemplateEndpoint{
         CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Template template = templateService.getPrivateTemplate(name, user);
-        TemplateResponse templateJson = convert(template);
-        return templateJson;
+        return convert(template);
     }
 
     @Override
@@ -107,8 +104,7 @@ public class TemplateController implements TemplateEndpoint{
         CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         Template template = templateService.getPublicTemplate(name, user);
-        TemplateResponse templateJson = convert(template);
-        return templateJson;
+        return convert(template);
     }
 
     @Override
