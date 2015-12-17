@@ -2,6 +2,7 @@ package com.sequenceiq.cloudbreak.conf;
 
 import java.util.concurrent.Executor;
 
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
@@ -30,6 +31,11 @@ public class AsyncConfig implements AsyncConfigurer, SchedulingConfigurer {
         executor.setThreadNamePrefix("asyncExecutor-");
         executor.initialize();
         return executor;
+    }
+
+    @Override
+    public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler() {
+        return null;
     }
 
     @Bean
