@@ -27,6 +27,7 @@ public class TemplateParametersValidator implements ConstraintValidator<ValidPro
     private List<TemplateParam> azureParams = new ArrayList<>();
     private List<TemplateParam> gcpParams = new ArrayList<>();
     private List<TemplateParam> openStackParams = new ArrayList<>();
+    private List<TemplateParam> vsphereParams = new ArrayList<>();
 
     @Override
     public void initialize(ValidProvisionRequest constraintAnnotation) {
@@ -41,6 +42,9 @@ public class TemplateParametersValidator implements ConstraintValidator<ValidPro
         }
         for (OpenStackTemplateParam param : OpenStackTemplateParam.values()) {
             openStackParams.add(param);
+        }
+        for (VsphereTemplateParam param : VsphereTemplateParam.values()) {
+            vsphereParams.add(param);
         }
     }
 
@@ -59,6 +63,9 @@ public class TemplateParametersValidator implements ConstraintValidator<ValidPro
                 break;
             case OPENSTACK:
                 valid = validateOpenStackParams(request, context);
+                break;
+            case VSPHERE:
+                valid = validateVsphereParams(request, context);
                 break;
             default:
                 break;
@@ -87,6 +94,15 @@ public class TemplateParametersValidator implements ConstraintValidator<ValidPro
     private boolean validateOpenStackParams(TemplateRequest request, ConstraintValidatorContext context) {
         for (ParameterValidator validator : parameterValidators) {
             if (!validator.validate(request.getParameters(), context, openStackParams)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    private boolean validateVsphereParams(TemplateRequest request, ConstraintValidatorContext context) {
+        for (ParameterValidator validator : parameterValidators) {
+            if (!validator.validate(request.getParameters(), context, vsphereParams)) {
                 return false;
             }
         }

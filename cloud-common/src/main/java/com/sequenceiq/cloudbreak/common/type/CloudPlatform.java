@@ -6,5 +6,6 @@ public enum CloudPlatform {
     AZURE_RM,
     GCP,
     OPENSTACK,
+    VSPHERE,
     ADAPTER;
 }

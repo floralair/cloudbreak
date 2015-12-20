@@ -32,6 +32,7 @@ import com.sequenceiq.cloudbreak.domain.CbUser;
 import com.sequenceiq.cloudbreak.domain.GcpTemplate;
 import com.sequenceiq.cloudbreak.domain.OpenStackTemplate;
 import com.sequenceiq.cloudbreak.domain.Template;
+import com.sequenceiq.cloudbreak.domain.VsphereTemplate;
 import com.sequenceiq.cloudbreak.logger.MDCBuilder;
 import com.sequenceiq.cloudbreak.repository.TemplateRepository;
 import com.sequenceiq.cloudbreak.service.template.SimpleTemplateLoaderService;
@@ -167,6 +168,9 @@ public class TemplateController {
             break;
         case OPENSTACK:
             converted = conversionService.convert(templateRequest, OpenStackTemplate.class);
+            break;
+        case VSPHERE:
+            converted = conversionService.convert(templateRequest, VsphereTemplate.class);
             break;
         default:
             throw new UnknownFormatConversionException(String.format("The cloudPlatform '%s' is not supported.", templateRequest.getCloudPlatform()));
