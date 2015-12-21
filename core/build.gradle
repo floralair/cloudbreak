@@ -77,6 +77,7 @@ dependencies {
     runtime project(':cloud-arm')
     runtime project(':cloud-gcp')
     runtime project(':cloud-aws')
+    runtime project(':cloud-vsphere')
 
     runtime     group: 'activation',                name: 'activation',                     version: '1.0.2'
 
