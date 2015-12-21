@@ -26,9 +26,10 @@ public class VsphereAuthenticator implements Authenticator {
 
     @Override
     public AuthenticatedContext authenticate(CloudContext cloudContext, CloudCredential cloudCredential) {
-        LOGGER.info("Authenticating to vSphere ...");
-        // TODO Auto-generated method stub
-        return null;
+        //Fake implementation.
+        LOGGER.info("Authenticating to vSphere ...");        
+        AuthenticatedContext authenticatedContext = new AuthenticatedContext(cloudContext, cloudCredential);
+        return authenticatedContext;
     }
 
 }
