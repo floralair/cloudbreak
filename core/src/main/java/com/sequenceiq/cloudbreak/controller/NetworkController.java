@@ -31,6 +31,7 @@ import com.sequenceiq.cloudbreak.domain.CbUser;
 import com.sequenceiq.cloudbreak.domain.GcpNetwork;
 import com.sequenceiq.cloudbreak.domain.Network;
 import com.sequenceiq.cloudbreak.domain.OpenStackNetwork;
+import com.sequenceiq.cloudbreak.domain.VsphereNetwork;
 import com.sequenceiq.cloudbreak.service.network.DefaultNetworkCreator;
 import com.sequenceiq.cloudbreak.service.network.NetworkService;
 import com.wordnik.swagger.annotations.Api;
@@ -151,6 +152,9 @@ public class NetworkController {
                 break;
             case OPENSTACK:
                 converted = conversionService.convert(networkRequest, OpenStackNetwork.class);
+                break;
+            case VSPHERE:
+                converted = conversionService.convert(networkRequest, VsphereNetwork.class);
                 break;
             default:
                 throw new UnknownFormatConversionException(String.format("The cloudPlatform '%s' is not supported.", networkRequest.getCloudPlatform()));
