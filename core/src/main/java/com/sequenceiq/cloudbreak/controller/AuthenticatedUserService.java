@@ -25,6 +25,6 @@ public class AuthenticatedUserService {
                 return userDetailsService.getDetails(username, UserFilterField.USERNAME);
             }
         }
-        throw new CloudbreakApiException("User not found in securityContext");
+        return null;
     }
 }

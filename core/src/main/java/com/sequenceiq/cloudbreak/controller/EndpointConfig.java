@@ -1,4 +1,5 @@
 package com.sequenceiq.cloudbreak.controller;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.stereotype.Component;
 
@@ -19,5 +20,12 @@ public class EndpointConfig extends ResourceConfig {
         register(SecurityGroupController.class);
         register(StackController.class);
         register(TemplateController.class);
+
+        register(CloudbreakEventController.class);
+        register(SubscriptionController.class);
+        register(CloudbreakUsageController.class);
+        register(AccountPreferencesController.class);
+
+        register(Test.class);
     }
 }

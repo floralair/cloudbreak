@@ -1,18 +1,12 @@
 package com.sequenceiq.cloudbreak.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
+import com.sequenceiq.cloudbreak.api.UsageEndpoint;
 import com.sequenceiq.cloudbreak.doc.ContentType;
 import com.sequenceiq.cloudbreak.doc.ControllerDescription;
 import com.sequenceiq.cloudbreak.doc.Notes;
@@ -25,67 +19,69 @@ import com.sequenceiq.cloudbreak.model.CloudbreakUsageJson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/usages", description = ControllerDescription.USAGES_DESCRIPTION, position = 6)
-public class CloudbreakUsageController {
+public class CloudbreakUsageController implements UsageEndpoint {
 
-    @Inject
+    @Autowired
     private CloudbreakUsagesFacade cloudbreakUsagesFacade;
 
+    @Autowired
+    private AuthenticatedUserService authenticatedUserService;
+
+    @Override
     @ApiOperation(value = UsagesOpDescription.GET_ALL, produces = ContentType.JSON, notes = Notes.USAGE_NOTES)
-    @RequestMapping(method = RequestMethod.GET, value = "/usages")
-    @ResponseBody
-    public ResponseEntity<List<CloudbreakUsageJson>> deployerUsages(@ModelAttribute("user") CbUser user,
-            @RequestParam(value = "since", required = false) Long since,
-            @RequestParam(value = "filterenddate", required = false) Long filterEndDate,
-            @RequestParam(value = "user", required = false) String userId,
-            @RequestParam(value = "account", required = false) String accountId,
-            @RequestParam(value = "cloud", required = false) String cloud,
-            @RequestParam(value = "zone", required = false) String zone) {
+    public List<CloudbreakUsageJson> getDeployer(
+            Long since,
+            Long filterEndDate,
+            String userId,
+            String accountId,
+            String cloud,
+            String zone) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         CbUsageFilterParameters params = new CbUsageFilterParameters.Builder().setAccount(accountId).setOwner(userId)
                 .setSince(since).setCloud(cloud).setRegion(zone).setFilterEndDate(filterEndDate).build();
         List<CloudbreakUsageJson> usages = cloudbreakUsagesFacade.getUsagesFor(params);
-        return new ResponseEntity<>(usages, HttpStatus.OK);
+        return usages;
     }
 
     @ApiOperation(value = UsagesOpDescription.GET_PUBLIC, produces = ContentType.JSON, notes = Notes.USAGE_NOTES)
-    @RequestMapping(method = RequestMethod.GET, value = "/account/usages")
-    @ResponseBody
-    public ResponseEntity<List<CloudbreakUsageJson>> accountUsages(@ModelAttribute("user") CbUser user,
-            @RequestParam(value = "since", required = false) Long since,
-            @RequestParam(value = "filterenddate", required = false) Long filterEndDate,
-            @RequestParam(value = "user", required = false) String userId,
-            @RequestParam(value = "cloud", required = false) String cloud,
-            @RequestParam(value = "zone", required = false) String zone) {
+    public List<CloudbreakUsageJson> getAccount(
+            Long since,
+            Long filterEndDate,
+            String userId,
+            String cloud,
+            String zone) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         CbUsageFilterParameters params = new CbUsageFilterParameters.Builder().setAccount(user.getAccount()).setOwner(userId)
                 .setSince(since).setCloud(cloud).setRegion(zone).setFilterEndDate(filterEndDate).build();
         List<CloudbreakUsageJson> usages = cloudbreakUsagesFacade.getUsagesFor(params);
-        return new ResponseEntity<>(usages, HttpStatus.OK);
+        return usages;
     }
 
+    @Override
     @ApiOperation(value = UsagesOpDescription.GET_PRIVATE, produces = ContentType.JSON, notes = Notes.USAGE_NOTES)
-    @RequestMapping(method = RequestMethod.GET, value = "/user/usages")
-    @ResponseBody
-    public ResponseEntity<List<CloudbreakUsageJson>> userUsages(@ModelAttribute("user") CbUser user,
-            @RequestParam(value = "since", required = false) Long since,
-            @RequestParam(value = "filterenddate", required = false) Long filterEndDate,
-            @RequestParam(value = "cloud", required = false) String cloud,
-            @RequestParam(value = "zone", required = false) String zone) {
+    public List<CloudbreakUsageJson> getUser(
+            Long since,
+            Long filterEndDate,
+            String cloud,
+            String zone) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         CbUsageFilterParameters params = new CbUsageFilterParameters.Builder().setAccount(user.getAccount()).setOwner(user.getUserId())
                 .setSince(since).setCloud(cloud).setRegion(zone).setFilterEndDate(filterEndDate).build();
         List<CloudbreakUsageJson> usages = cloudbreakUsagesFacade.getUsagesFor(params);
-        return new ResponseEntity<>(usages, HttpStatus.OK);
+        return usages;
     }
 
+    @Override
     @ApiOperation(value = UsagesOpDescription.GENERATE, produces = ContentType.JSON, notes = Notes.USAGE_NOTES)
-    @RequestMapping(method = RequestMethod.GET, value = "/usages/generate")
-    @ResponseBody
-    public ResponseEntity<List<CloudbreakUsageJson>> generateUsages(@ModelAttribute("user") CbUser user) {
+    public List<CloudbreakUsageJson> generate() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         cloudbreakUsagesFacade.generateUserUsages();
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ArrayList<>();
     }
 }

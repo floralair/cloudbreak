@@ -14,17 +14,23 @@ import com.sequenceiq.cloudbreak.model.BlueprintRequest;
 import com.sequenceiq.cloudbreak.model.BlueprintResponse;
 import com.sequenceiq.cloudbreak.model.IdJson;
 
+@Path("/")
 public interface BlueprintEndpoint {
+
+    @GET
+    @Path("blueprints/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    BlueprintResponse get(@PathParam(value = "id") Long id);
+
+    @DELETE
+    @Path("blueprints/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    BlueprintResponse delete(@PathParam(value = "id") Long id);
 
     @POST
     @Path("user/blueprints")
     @Produces(MediaType.APPLICATION_JSON)
     IdJson postPrivate(BlueprintRequest blueprintRequest);
-
-    @POST
-    @Path("account/blueprints")
-    @Produces(MediaType.APPLICATION_JSON)
-    IdJson postPublic(BlueprintRequest blueprintRequest);
 
     @GET
     @Path("user/blueprints")
@@ -32,37 +38,33 @@ public interface BlueprintEndpoint {
     Set<BlueprintResponse> getPrivates();
 
     @GET
-    @Path("account/blueprints")
-    @Produces(MediaType.APPLICATION_JSON)
-    Set<BlueprintResponse> getPublics();
-
-    @GET
     @Path("user/blueprints/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     BlueprintResponse getPrivate(@PathParam(value = "name") String name);
+
+    @DELETE
+    @Path("user/blueprints/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    BlueprintResponse deletePrivate(@PathParam(value = "name") String name);
+
+    @POST
+    @Path("account/blueprints")
+    @Produces(MediaType.APPLICATION_JSON)
+    IdJson postPublic(BlueprintRequest blueprintRequest);
+
+    @GET
+    @Path("account/blueprints")
+    @Produces(MediaType.APPLICATION_JSON)
+    Set<BlueprintResponse> getPublics();
 
     @GET
     @Path("account/blueprints/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     BlueprintResponse getPublic(@PathParam(value = "name") String name);
 
-    @GET
-    @Path("blueprints/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    BlueprintResponse get(@PathParam(value = "id") Long credentialId);
-
-    @DELETE
-    @Path("blueprints/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    BlueprintResponse delete(@PathParam(value = "id") Long credentialId);
-
     @DELETE
     @Path("account/blueprints/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     BlueprintResponse deletePublic(@PathParam(value = "name") String name);
 
-    @DELETE
-    @Path("user/blueprints/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    BlueprintResponse deletePrivate(@PathParam(value = "name") String name);
 }

@@ -23,6 +23,7 @@ import com.sequenceiq.cloudbreak.model.StackResponse;
 import com.sequenceiq.cloudbreak.model.StackValidationRequest;
 import com.sequenceiq.cloudbreak.model.UpdateStackJson;
 
+@Path("/")
 public interface StackEndpoint {
 
     @POST

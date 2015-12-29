@@ -14,6 +14,7 @@ import com.sequenceiq.cloudbreak.model.IdJson;
 import com.sequenceiq.cloudbreak.model.RecipeRequest;
 import com.sequenceiq.cloudbreak.model.RecipeResponse;
 
+@Path("/")
 public interface RecipeEndpoint {
 
     @POST

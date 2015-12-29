@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.Resource;
-import javax.inject.Inject;
 import javax.ws.rs.PathParam;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Component;
@@ -34,10 +34,10 @@ public class CredentialController implements CredentialEndpoint {
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private CredentialService credentialService;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
     @Override

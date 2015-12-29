@@ -2,8 +2,7 @@ package com.sequenceiq.cloudbreak.controller;
 
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -28,14 +27,14 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Api(value = "/recipe", description = ControllerDescription.RECIPE_DESCRIPTION, position = 5)
 public class RecipeController implements RecipeEndpoint {
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private RecipeService recipeService;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
     @Override

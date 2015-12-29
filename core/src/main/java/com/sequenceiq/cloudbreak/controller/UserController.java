@@ -1,7 +1,6 @@
 package com.sequenceiq.cloudbreak.controller;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -26,7 +25,7 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Api(value = "/users", description = ControllerDescription.USER_DESCRIPTION, position = 9)
 public class UserController {
 
-    @Inject
+    @Autowired
     private UserDetailsService userDetailsService;
 
     @ApiOperation(value = OperationDescriptions.UserOpDescription.USER_DETAILS_EVICT, produces = ContentType.JSON, notes = Notes.USER_NOTES)

@@ -2,17 +2,10 @@ package com.sequenceiq.cloudbreak.controller;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
+import com.sequenceiq.cloudbreak.api.EventEndpoint;
 import com.sequenceiq.cloudbreak.doc.ContentType;
 import com.sequenceiq.cloudbreak.doc.ControllerDescription;
 import com.sequenceiq.cloudbreak.doc.Notes;
@@ -24,19 +17,22 @@ import com.sequenceiq.cloudbreak.model.CloudbreakEventsJson;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/events", description = ControllerDescription.EVENT_DESCRIPTION, position = 7)
-public class CloudbreakEventController {
+public class CloudbreakEventController implements EventEndpoint{
 
-    @Inject
+    @Autowired
     private CloudbreakEventsFacade cloudbreakEventsFacade;
 
+    @Autowired
+    private AuthenticatedUserService authenticatedUserService;
+
+    @Override
     @ApiOperation(value = EventOpDescription.GET_BY_TIMESTAMP, produces = ContentType.JSON, notes = Notes.EVENT_NOTES)
-    @RequestMapping(method = RequestMethod.GET, value = "/events")
-    @ResponseBody
-    public ResponseEntity<List<CloudbreakEventsJson>> events(@ModelAttribute("user") CbUser user, @RequestParam(value = "since", required = false) Long since) {
+    public List<CloudbreakEventsJson> get(Long since) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         List<CloudbreakEventsJson> cloudbreakEvents = cloudbreakEventsFacade.retrieveEvents(user.getUserId(), since);
-        return new ResponseEntity<>(cloudbreakEvents, HttpStatus.OK);
+        return cloudbreakEvents;
     }
 }

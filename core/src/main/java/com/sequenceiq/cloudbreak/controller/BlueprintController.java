@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -31,17 +30,17 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Api(value = "/blueprints", description = ControllerDescription.BLUEPRINT_DESCRIPTION, position = 0)
 public class BlueprintController implements BlueprintEndpoint {
 
-    @Inject
+    @Autowired
     private BlueprintService blueprintService;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private BlueprintLoaderService blueprintLoaderService;
 
     @Override

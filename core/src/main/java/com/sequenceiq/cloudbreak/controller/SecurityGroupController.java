@@ -3,8 +3,7 @@ package com.sequenceiq.cloudbreak.controller;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Component;
@@ -26,17 +25,17 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Component
 @Api(value = "/securitygroups", description = ControllerDescription.SECURITY_GROUPS_DESCRIPTION, position = 9)
 public class SecurityGroupController implements SecurityGroupEndpoint {
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private SecurityGroupService securityGroupService;
 
-    @Inject
+    @Autowired
     private DefaultSecurityGroupCreator defaultSecurityGroupCreator;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
     @Override

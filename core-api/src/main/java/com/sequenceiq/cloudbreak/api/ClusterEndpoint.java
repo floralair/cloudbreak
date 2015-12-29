@@ -12,6 +12,7 @@ import com.sequenceiq.cloudbreak.model.ClusterRequest;
 import com.sequenceiq.cloudbreak.model.ClusterResponse;
 import com.sequenceiq.cloudbreak.model.UpdateClusterJson;
 
+@Path("/")
 public interface ClusterEndpoint {
 
     @POST

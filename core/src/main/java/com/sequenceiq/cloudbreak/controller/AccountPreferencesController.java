@@ -1,19 +1,11 @@
 package com.sequenceiq.cloudbreak.controller;
 
-import javax.inject.Inject;
-import javax.validation.Valid;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.stereotype.Component;
 
+import com.sequenceiq.cloudbreak.api.AccountPreferencesEndpoint;
 import com.sequenceiq.cloudbreak.common.type.CbUserRole;
 import com.sequenceiq.cloudbreak.doc.ContentType;
 import com.sequenceiq.cloudbreak.doc.ControllerDescription;
@@ -28,47 +20,50 @@ import com.sequenceiq.cloudbreak.service.account.ScheduledAccountPreferencesVali
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 
-@Controller
+@Component
 @Api(value = "/accountpreferences", description = ControllerDescription.ACCOUNT_PREFERENCES_DESCRIPTION)
-public class AccountPreferencesController {
+public class AccountPreferencesController implements AccountPreferencesEndpoint {
 
-    @Inject
+    @Autowired
     private AccountPreferencesService service;
 
-    @Inject
+    @Autowired
     private ScheduledAccountPreferencesValidator validator;
 
-    @Inject
+    @Autowired
+    private AuthenticatedUserService authenticatedUserService;
+
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
+    @Override
     @ApiOperation(value = OperationDescriptions.AccountPreferencesDescription.GET_PRIVATE, produces = ContentType.JSON, notes = Notes.ACCOUNT_PREFERENCES_NOTES)
-    @RequestMapping(value = "accountpreferences", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<AccountPreferencesJson> getAccountPreferencesForUser(@ModelAttribute("user") CbUser user) {
+    public AccountPreferencesJson get() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         AccountPreferences preferences = service.getOneByAccount(user);
-        return new ResponseEntity<>(convert(preferences), HttpStatus.OK);
+        return convert(preferences);
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.AccountPreferencesDescription.PUT_PRIVATE, produces = ContentType.JSON, notes = Notes.ACCOUNT_PREFERENCES_NOTES)
-    @RequestMapping(value = "accountpreferences", method = RequestMethod.PUT)
-    @ResponseBody
-    public ResponseEntity<String> updateAccountPreferences(@ModelAttribute("user") CbUser user, @Valid @RequestBody AccountPreferencesJson updateRequest) {
+    public String put(AccountPreferencesJson updateRequest) {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         service.saveOne(user, convert(updateRequest));
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return "";
     }
 
+    @Override
     @ApiOperation(value = OperationDescriptions.AccountPreferencesDescription.VALIDATE, produces = ContentType.JSON, notes = Notes.ACCOUNT_PREFERENCES_NOTES)
-    @RequestMapping(value = "accountpreferences/validate", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<String> validate(@ModelAttribute("user") CbUser user) {
+    public String validate() {
+        CbUser user = authenticatedUserService.getCbUser();
         MDCBuilder.buildUserMdcContext(user);
         if (user.getRoles().contains(CbUserRole.ADMIN)) {
             validator.validate();
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return "";
     }
 
     private AccountPreferencesJson convert(AccountPreferences preferences) {

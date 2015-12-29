@@ -3,8 +3,7 @@ package com.sequenceiq.cloudbreak.controller;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.TypeDescriptor;
@@ -40,26 +39,26 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Api(value = "/stack", description = ControllerDescription.STACK_DESCRIPTION, position = 3)
 public class StackController implements StackEndpoint {
 
-    @Inject
+    @Autowired
     private StackService stackService;
 
-    @Inject
+    @Autowired
     private TlsSecurityService tlsSecurityService;
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private Decorator<Stack> stackDecorator;
 
-    @Inject
+    @Autowired
     private AccountPreferencesValidator accountPreferencesValidator;
 
-    @Inject
+    @Autowired
     private CloudParameterService parameterService;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
     @Override

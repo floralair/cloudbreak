@@ -13,37 +13,8 @@ import javax.ws.rs.core.MediaType;
 import com.sequenceiq.cloudbreak.model.IdJson;
 import com.sequenceiq.cloudbreak.model.NetworkJson;
 
+@Path("/")
 public interface NetworkEndpoint {
-
-    @POST
-    @Path("user/networks")
-    @Produces(MediaType.APPLICATION_JSON)
-    IdJson postPrivate(NetworkJson networkJson);
-
-    @POST
-    @Path("account/networks")
-    @Produces(MediaType.APPLICATION_JSON)
-    IdJson postPublic(NetworkJson networkJson);
-
-    @GET
-    @Path("user/networks")
-    @Produces(MediaType.APPLICATION_JSON)
-    Set<NetworkJson> getPrivates();
-
-    @GET
-    @Path("account/networks")
-    @Produces(MediaType.APPLICATION_JSON)
-    Set<NetworkJson> getPublics();
-
-    @GET
-    @Path("user/networks/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    NetworkJson getPrivate(@PathParam(value = "name") String name);
-
-    @GET
-    @Path("account/networks/{name}")
-    @Produces(MediaType.APPLICATION_JSON)
-    NetworkJson getPublic(@PathParam(value ="name") String name);
 
     @GET
     @Path("networks/{id}")
@@ -55,13 +26,44 @@ public interface NetworkEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     NetworkJson delete(@PathParam(value ="id") Long id);
 
+    @POST
+    @Path("account/networks")
+    @Produces(MediaType.APPLICATION_JSON)
+    IdJson postPublic(NetworkJson networkJson);
+
+    @GET
+    @Path("account/networks")
+    @Produces(MediaType.APPLICATION_JSON)
+    Set<NetworkJson> getPublics();
+
+    @GET
+    @Path("account/networks/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    NetworkJson getPublic(@PathParam(value = "name") String name);
+
     @DELETE
     @Path("account/networks/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     NetworkJson deletePublic(@PathParam(value = "name") String name);
 
+    @POST
+    @Path("user/networks")
+    @Produces(MediaType.APPLICATION_JSON)
+    IdJson postPrivate(NetworkJson networkJson);
+
+    @GET
+    @Path("user/networks")
+    @Produces(MediaType.APPLICATION_JSON)
+    Set<NetworkJson> getPrivates();
+
+    @GET
+    @Path("user/networks/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    NetworkJson getPrivate(@PathParam(value = "name") String name);
+
     @DELETE
     @Path("user/networks/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     NetworkJson deletePrivate(@PathParam(value = "name") String name);
+
 }

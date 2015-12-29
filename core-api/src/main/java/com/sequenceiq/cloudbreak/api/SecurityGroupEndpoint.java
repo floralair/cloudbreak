@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import com.sequenceiq.cloudbreak.model.IdJson;
 import com.sequenceiq.cloudbreak.model.SecurityGroupJson;
 
+@Path("/")
 public interface SecurityGroupEndpoint {
 
     @POST

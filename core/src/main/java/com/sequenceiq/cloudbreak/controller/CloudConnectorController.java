@@ -1,12 +1,9 @@
 package com.sequenceiq.cloudbreak.controller;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.security.core.Authentication;
@@ -23,16 +20,15 @@ import com.sequenceiq.cloudbreak.model.PlatformDisksJson;
 import com.sequenceiq.cloudbreak.model.PlatformRegionsJson;
 import com.sequenceiq.cloudbreak.model.PlatformVariantsJson;
 import com.sequenceiq.cloudbreak.model.PlatformVirtualMachinesJson;
-import com.sequenceiq.cloudbreak.model.VmTypeJson;
 import com.sequenceiq.cloudbreak.service.stack.CloudParameterService;
 
 @Component
 public class CloudConnectorController implements ConnectorEndpoint {
 
-    @Inject
+    @Autowired
     private CloudParameterService cloudParameterService;
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
@@ -60,48 +56,48 @@ public class CloudConnectorController implements ConnectorEndpoint {
         return conversionService.convert(pv, PlatformVariantsJson.class);
     }
 
-    @Override
+   /* @Override
     public Collection<String> getPlatformVariantByType(String type) {
         PlatformVariants pv = cloudParameterService.getPlatformVariants();
         Collection<String> strings = conversionService.convert(pv, PlatformVariantsJson.class).getPlatformToVariants().get(type.toUpperCase());
         return strings == null ? new ArrayList<String>() : strings;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public PlatformDisksJson getDisktypes() {
         PlatformDisks dts = cloudParameterService.getDiskTypes();
         return conversionService.convert(dts, PlatformDisksJson.class);
-    }
+    }*/
 
-    @Override
+    /*@Override
     public Collection<String> getDisktypeByType(String type) {
         PlatformDisks diskTypes = cloudParameterService.getDiskTypes();
         Collection<String> strings = conversionService.convert(diskTypes, PlatformDisksJson.class)
                 .getDiskTypes().get(type.toUpperCase());
         return strings == null ? new ArrayList<String>() : strings;
-    }
+    }*/
 
-    @Override
+   /* @Override
     public PlatformVirtualMachinesJson getVmTypes() {
         PlatformVirtualMachines vmtypes = cloudParameterService.getVmtypes();
         return conversionService.convert(vmtypes, PlatformVirtualMachinesJson.class);
     }
-
-    @Override
+*/
+    /*@Override
     public Collection<VmTypeJson> getVmTypeByType(String type) {
         PlatformVirtualMachines vmtypes = cloudParameterService.getVmtypes();
         Collection<VmTypeJson> vmTypes = conversionService.convert(vmtypes, PlatformVirtualMachinesJson.class)
                 .getVirtualMachines().get(type.toUpperCase());
         return vmTypes == null ? new ArrayList<VmTypeJson>() : vmTypes;
-    }
+    }*/
 
-    @Override
+   /* @Override
     public PlatformRegionsJson getRegions() {
         PlatformRegions pv = cloudParameterService.getRegions();
         return conversionService.convert(pv, PlatformRegionsJson.class);
-    }
+    }*/
 
-    @Override
+    /*@Override
     public Collection<String> getRegionRByType(String type) {
         PlatformRegions pv = cloudParameterService.getRegions();
         Collection<String> regions = conversionService.convert(pv, PlatformRegionsJson.class)
@@ -115,6 +111,6 @@ public class CloudConnectorController implements ConnectorEndpoint {
         Map<String, Collection<String>> azs = conversionService.convert(pv, PlatformRegionsJson.class)
                 .getAvailabilityZones().get(type.toUpperCase());
         return azs == null ? new HashMap<String, Collection<String>>() : azs;
-    }
+    }*/
 
 }

@@ -14,55 +14,56 @@ import com.sequenceiq.cloudbreak.model.IdJson;
 import com.sequenceiq.cloudbreak.model.TemplateRequest;
 import com.sequenceiq.cloudbreak.model.TemplateResponse;
 
+@Path("/")
 public interface TemplateEndpoint {
 
     @POST
-    @Path("/user/templates")
+    @Path("user/templates")
     @Produces(MediaType.APPLICATION_JSON)
     IdJson postPrivate(TemplateRequest templateRequest);
 
     @POST
-    @Path("/account/templates")
+    @Path("account/templates")
     @Produces(MediaType.APPLICATION_JSON)
     IdJson postPublic(TemplateRequest templateRequest);
 
     @GET
-    @Path("/user/templates")
+    @Path("user/templates")
     @Produces(MediaType.APPLICATION_JSON)
     Set<TemplateResponse> getPrivates();
 
     @GET
-    @Path("/account/templates")
+    @Path("account/templates")
     @Produces(MediaType.APPLICATION_JSON)
     Set<TemplateResponse> getPublics();
 
     @GET
-    @Path("/user/templates/{name}")
+    @Path("user/templates/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     TemplateResponse getPrivate(@PathParam("name") String name);
 
     @GET
-    @Path("/account/templates/{name}")
+    @Path("account/templates/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     TemplateResponse getPublic(@PathParam("name") String name);
 
     @GET
-    @Path("/templates/{id}")
+    @Path("templates/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     TemplateResponse get(@PathParam("id") Long id);
 
     @DELETE
-    @Path("/templates/{id}")
+    @Path("templates/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     TemplateResponse delete(@PathParam("id") Long id);
 
     @DELETE
-    @Path("/account/templates/{name}")
+    @Path("account/templates/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     TemplateResponse deletePublic(@PathParam("name") String name);
 
     @DELETE
-    @Path("/user/templates/{name}")
+    @Path("user/templates/{name}")
     @Produces(MediaType.APPLICATION_JSON)
     TemplateResponse deletePrivate(@PathParam("name") String name);
 }

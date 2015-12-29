@@ -3,8 +3,7 @@ package com.sequenceiq.cloudbreak.controller;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Component;
@@ -29,16 +28,16 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Component
 @Api(value = "/templates", description = ControllerDescription.TEMPLATE_DESCRIPTION, position = 2)
 public class TemplateController implements TemplateEndpoint{
-    @Inject
+    @Autowired
     private TemplateService templateService;
 
-    @Inject
+    @Autowired
     private DefaultTemplateLoaderService defaultTemplateLoaderService;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.Validation;
@@ -13,6 +12,7 @@ import javax.validation.ValidatorFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Component;
@@ -52,32 +52,32 @@ import com.wordnik.swagger.annotations.ApiOperation;
 public class ClusterController implements ClusterEndpoint {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClusterController.class);
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private Decorator<Cluster> clusterDecorator;
 
-    @Inject
+    @Autowired
     private Decorator<HostGroup> hostGroupDecorator;
 
-    @Inject
+    @Autowired
     private ClusterService clusterService;
 
-    @Inject
+    @Autowired
     private HostGroupService hostGroupService;
 
-    @Inject
+    @Autowired
     private BlueprintValidator blueprintValidator;
 
-    @Inject
+    @Autowired
     private StackService stackService;
 
-    @Inject
+    @Autowired
     private JsonHelper jsonHelper;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
     @Override

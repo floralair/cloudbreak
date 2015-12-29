@@ -3,8 +3,7 @@ package com.sequenceiq.cloudbreak.controller;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Component;
@@ -28,17 +27,17 @@ import com.wordnik.swagger.annotations.ApiOperation;
 @Api(value = "/networks", description = ControllerDescription.NETWORK_DESCRIPTION, position = 8)
 public class NetworkController implements NetworkEndpoint {
 
-    @Inject
+    @Autowired
     @Qualifier("conversionService")
     private ConversionService conversionService;
 
-    @Inject
+    @Autowired
     private NetworkService networkService;
 
-    @Inject
+    @Autowired
     private DefaultNetworkCreator networkCreator;
 
-    @Inject
+    @Autowired
     private AuthenticatedUserService authenticatedUserService;
 
     @Override

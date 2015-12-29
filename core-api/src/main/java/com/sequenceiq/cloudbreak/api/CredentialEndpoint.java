@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 import com.sequenceiq.cloudbreak.model.CredentialRequest;
 import com.sequenceiq.cloudbreak.model.CredentialResponse;
 import com.sequenceiq.cloudbreak.model.IdJson;
-
+@Path("/")
 public interface CredentialEndpoint {
 
     @POST
