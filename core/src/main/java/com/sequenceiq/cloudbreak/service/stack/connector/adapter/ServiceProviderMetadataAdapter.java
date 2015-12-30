@@ -127,8 +127,8 @@ public class ServiceProviderMetadataAdapter {
                 GetInstancesStateResult res = stateRequest.await();
                 LOGGER.info("Result: {}", res);
                 if (res.isFailed()) {
-                    LOGGER.error("Failed to retrieve instance state", res.getException());
-                    throw new OperationException(res.getException());
+                    LOGGER.error("Failed to retrieve instance state", res.getErrorDetails());
+                    throw new OperationException(res.getErrorDetails());
                 }
                 return transform(res.getStatuses().get(0).getStatus());
             } catch (InterruptedException e) {
