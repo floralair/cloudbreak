@@ -12,7 +12,7 @@ import com.sequenceiq.cloudbreak.cloud.model.CredentialStatus;
 
 @Service
 public class VsphereCredentialConnector implements CredentialConnector {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(VsphereCredentialConnector.class);
 
     @Override

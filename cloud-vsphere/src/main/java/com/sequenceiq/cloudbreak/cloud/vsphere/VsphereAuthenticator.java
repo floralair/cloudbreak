@@ -11,7 +11,7 @@ import com.sequenceiq.cloudbreak.cloud.model.CloudCredential;
 
 @Service
 public class VsphereAuthenticator implements Authenticator {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(VsphereAuthenticator.class);
 
     @Override
@@ -27,7 +27,7 @@ public class VsphereAuthenticator implements Authenticator {
     @Override
     public AuthenticatedContext authenticate(CloudContext cloudContext, CloudCredential cloudCredential) {
         //Fake implementation.
-        LOGGER.info("Authenticating to vSphere ...");        
+        LOGGER.info("Authenticating to vSphere ...");
         AuthenticatedContext authenticatedContext = new AuthenticatedContext(cloudContext, cloudCredential);
         return authenticatedContext;
     }

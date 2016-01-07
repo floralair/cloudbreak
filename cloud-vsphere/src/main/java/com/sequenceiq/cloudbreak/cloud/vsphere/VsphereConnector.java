@@ -15,7 +15,7 @@ import com.sequenceiq.cloudbreak.cloud.Setup;
 
 @Service
 public class VsphereConnector implements CloudConnector {
-    
+
     @Inject
     private VsphereAuthenticator vsphereAuthenticator;
     @Inject
